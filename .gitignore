@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+.env
+.DS_Store
+__pycache__
+*.pyc
+venv
+.venv
+*.log
+coverage
+.vscode
+config/twitter_cache.json
+config/reddit_cache.json
+settings.json
