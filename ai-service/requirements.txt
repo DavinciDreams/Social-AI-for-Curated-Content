@@ -8,5 +8,5 @@ sentence-transformers>=3.0.0
 faiss-cpu
 numpy>=2.0.0
 spacy>=3.8.0
-python-multipart==0.0.6
+python-multipart==0.0.22
 python-dotenv==1.0.0
