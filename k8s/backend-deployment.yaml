@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socialai-backend
+  namespace: socialai
+  labels:
+    app: socialai
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: socialai
+      component: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: socialai
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: socialai-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 3001
+            name: http
+        env:
+          - name: NODE_ENV
+            value: "production"
+          - name: PORT
+            value: "3001"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: socialai-secrets
+              key: database-url
+          - name: REDIS_URL
+            valueFrom:
+              secretKeyRef:
+                name: socialai-secrets
+              key: redis-url
+          - name: ELASTICSEARCH_URL
+            valueFrom:
+              secretKeyRef:
+                name: socialai-secrets
+              key: elasticsearch-url
+          - name: NEO4J_URI
+            valueFrom:
+              secretKeyRef:
+                name: socialai-secrets
+              key: neo4j-uri
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: socialai-secrets
+              key: jwt-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+      restartPolicy: Always

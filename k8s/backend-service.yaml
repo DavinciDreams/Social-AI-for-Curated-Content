@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: socialai-backend
+  namespace: socialai
+  labels:
+    app: socialai
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: socialai
+    component: backend
+  ports:
+    - name: http
+      port: 3001
+      targetPort: 3001
+      protocol: TCP
+  sessionAffinity: ClientIP

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socialai-frontend
+  namespace: socialai
+  labels:
+    app: socialai
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: socialai
+      component: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: socialai
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: socialai-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 80
+            name: http
+        env:
+          - name: VITE_API_URL
+            valueFrom:
+              configMapKeyRef:
+                name: socialai-config
+                key: api-url
+          - name: VITE_APP_URL
+            valueFrom:
+              configMapKeyRef:
+                name: socialai-config
+                key: app-url
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      restartPolicy: Always

@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-const API_URL = 'http://localhost:3000/api';
+// Use environment variable for API URL with fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 interface FeedConfig {
     id: string;

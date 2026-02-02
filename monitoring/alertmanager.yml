@@ -1,0 +1,90 @@
+# AlertManager Configuration
+
+global:
+  resolve_timeout: 5m
+
+# Alertmanager webhook configuration
+route:
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+
+receivers:
+  - name: 'pagerduty'
+    webhook_configs:
+      - url: 'https://events.pagerduty.com/v2/enqueue'
+      send_resolved: true
+      http_config:
+        url: 'https://events.pagerduty.com/v2/enqueue'
+
+  - name: 'slack'
+    webhook_configs:
+      - url: 'https://hooks.slack.com/services/TOKEN'
+      send_resolved: true
+
+inhibit_rules:
+  # Don't alert during maintenance windows
+  - match:
+      alertname: 'HighErrorRate'
+      source:
+        - match:
+            alertname: 'DatabaseDown'
+      target_match:
+        - match:
+            - source:
+              - match:
+                  alertname: 'DatabaseDown'
+              - receiver: 'pagerduty'
+            - receiver: 'slack'
+      equal:
+        - alertname: 'MaintenanceMode'
+          value: 'true'
+
+# Alert Rules
+groups:
+  - name: critical
+    rules:
+      - alert: HighErrorRate
+        expr: (rate(http_requests_failed:5m) > 5)
+        for: 5m
+        annotations:
+          summary: "High error rate detected"
+          runbook_url: "https://wiki.socialai.com/runbook/high-error-rate"
+          severity: "critical"
+
+      - alert: DatabaseDown
+        expr: up(database_connection_failed) == 0
+        for: 5m
+        annotations:
+          summary: "Database connection lost"
+          runbook_url: "https://wiki.socialai.com/runbook/database-down"
+          severity: "critical"
+
+  - name: warnings
+    rules:
+      - alert: CacheMissRate
+        expr: (rate(http_cache_miss_total{endpoint!~\"/api/feeds\"}[5m]) < 0.8
+        for: 5m
+        annotations:
+          summary: "Cache miss rate below threshold"
+          runbook_url: "https://wiki.socialai.com/runbook/cache-optimization"
+          severity: "warning"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, http_request_duration_seconds[5m]) > 2
+        for: 5m
+        annotations:
+          summary: "API latency above threshold"
+          runbook_url: "https://wiki.socialai.com/runbook/high-latency"
+          severity: "warning"
+
+  - name: info
+    rules:
+      - alert: DeploymentComplete
+        expr: count_changes(kubernetes_deployment_status_ready{namespace=\"socialai\"}[5m]) > 0
+        for: 5m
+        annotations:
+          summary: "Deployment completed successfully"
+          runbook_url: "https://wiki.socialai.com/runbook/deployment-success"
+          severity: "info"

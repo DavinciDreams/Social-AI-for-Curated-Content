@@ -1,0 +1,119 @@
+{
+  "dashboard": {
+    "title": "Social AI - Application Overview",
+    "tags": ["overview", "application"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Application Health",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "up(database_connection_failed) == 0",
+            "refId": "A",
+            "legendFormat": "name",
+            "colorMode": "value"
+          },
+          {
+            "expr": "up(database_connection_failed) > 0",
+            "refId": "B",
+            "legendFormat": "name",
+            "colorMode": "value"
+          }
+        ],
+        "options": {
+          "legend": { "showLegend": true, "min": 0, "max": 1, "avg": true },
+          "tooltip": { "mode": "single", "sort": "desc" }
+        }
+      },
+      {
+        "id": 2,
+        "title": "API Performance",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 1 },
+        "targets": [
+          {
+            "expr": "rate(http_req_duration_seconds{endpoint!~\"/api/feeds\"}[5m])",
+            "refId": "A",
+            "legendFormat": "name",
+            "colorMode": "value"
+          },
+          {
+            "expr": "rate(http_requests_per_second[5m])",
+            "refId": "B",
+            "legendFormat": "name",
+            "colorMode": "value"
+          }
+        ],
+        "options": {
+          "legend": { "showLegend": true, "min": 0 },
+          "tooltip": { "mode": "single", "sort": "desc" }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 2 },
+        "targets": [
+          {
+            "expr": "rate(http_requests_failed[5m])",
+            "refId": "A",
+            "legendFormat": "name",
+            "colorMode": "value"
+          }
+        ],
+        "options": {
+          "legend": { "showLegend": true, "min": 0 },
+          "tooltip": { "mode": "single", "sort": "desc" }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Users",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 3 },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_per_second[5m]))",
+            "refId": "A",
+            "legendFormat": "name",
+            "colorMode": "value"
+          }
+        ],
+        "options": {
+          "legend": { "showLegend": true, "min": 0 },
+          "tooltip": { "mode": "single", "sort": "desc" }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Cache Performance",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 4 },
+        "targets": [
+          {
+            "expr": "rate(http_cache_hit_total[5m]) / (rate(http_cache_hit_total[5m]) + rate(http_cache_miss_total[5m])) * 100",
+            "refId": "A",
+            "legendFormat": "name",
+            "colorMode": "value"
+          },
+          {
+            "expr": "rate(http_cache_hit_total[5m])",
+            "refId": "B",
+            "legendFormat": "name",
+            "colorMode": "value"
+          }
+        ],
+        "options": {
+          "legend": { "showLegend": true, "min": 0 },
+          "tooltip": { "mode": "single", "sort": "desc" }
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: socialai-frontend
+  namespace: socialai
+  labels:
+    app: socialai
+    component: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: socialai
+    component: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  sessionAffinity: ClientIP

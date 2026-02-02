@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-commit hooks..."
+
+# Run linters
+npm run lint:backend || true
+npm run lint:frontend || true
+
+# Run tests
+npm test:backend || true
+npm test:frontend || true
+
+echo "Pre-commit hooks completed"

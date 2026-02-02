@@ -1,0 +1,39 @@
+# Prometheus Configuration
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'socialai'
+    environment: 'production'
+
+scrape_configs:
+  # Backend Service
+  - job_name: 'socialai-backend'
+    static_configs:
+      - targets:
+          - 'http://socialai-backend:3001/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+
+  # Frontend Service (exposed via ingress)
+  - job_name: 'socialai-frontend'
+    static_configs:
+      - targets:
+          - 'http://socialai-frontend/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+
+  # AI Service
+  - job_name: 'socialai-ai-service'
+    static_configs:
+      - targets:
+          - 'http://socialai-ai-service:8000/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 10s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093

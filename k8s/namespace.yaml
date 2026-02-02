@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: socialai
+  labels:
+    name: socialai
+    app: socialai
+    environment: production
+spec:
+  finalizers:
+  - resources-finalizer.socialai

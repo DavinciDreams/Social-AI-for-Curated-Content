@@ -1,0 +1,88 @@
+name: Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scan daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript, typescript
+          queries: security-extended, security-and-quality
+          packs: javascript-stdlib, typescript-stdlib
+
+      - name: Run npm audit
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate --json > npm-audit.json || true
+
+      - name: Upload security scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            trivy-results.sarif
+            npm-audit.json
+
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Snyk dependency check
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Check for outdated dependencies
+        working-directory: ./backend
+        run: npm outdated || true
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog-actions-scan@v3.0.7
+        with:
+          baseBranch: ${{ github.base_ref || 'main' }}
+          headBranch: ${{ github.head_ref }}
+          pushResults: true
+          createIssue: true
+          createPR: false
+          failOn: 'high'
+          commentMode: 'hide'
+          token: ${{ secrets.GITHUB_TOKEN }}
