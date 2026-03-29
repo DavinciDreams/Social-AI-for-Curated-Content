@@ -19,7 +19,7 @@
         "@types/jsonwebtoken": "^9.0.10",
         "@types/morgan": "^1.9.10",
         "@types/passport": "^1.0.17",
-        "axios": "^1.6.0",
+        "axios": "^1.13.5",
         "bcrypt": "^6.0.0",
         "compression": "^1.8.1",
         "connect-redis": "^9.0.0",
